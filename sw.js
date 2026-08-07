@@ -1,4 +1,4 @@
-const CACHE_NAME = 'logbook-shell-v1';
+const CACHE_NAME = 'logbook-shell-v3';
 const SHELL_FILES = ['./index.html', './manifest.json', './icon-192.png', './icon-512.png'];
 
 self.addEventListener('install', (event) => {
@@ -17,12 +17,20 @@ self.addEventListener('activate', (event) => {
   self.clients.claim();
 });
 
+// Network-first for same-origin shell files, so updates show up immediately.
+// Falls back to the cached copy only when offline.
 self.addEventListener('fetch', (event) => {
   const url = new URL(event.request.url);
   if (url.origin === self.location.origin) {
     event.respondWith(
-      caches.match(event.request).then((cached) => cached || fetch(event.request))
+      fetch(event.request)
+        .then((response) => {
+          const copy = response.clone();
+          caches.open(CACHE_NAME).then((cache) => cache.put(event.request, copy)).catch(() => {});
+          return response;
+        })
+        .catch(() => caches.match(event.request))
     );
   }
-  // Requests to api.anthropic.com and CDN scripts always go to the network untouched.
+  // Requests to generativelanguage.googleapis.com and CDN scripts always go to the network untouched.
 });
