@@ -1,47 +1,40 @@
 # Logbook — standalone Android app (PWA)
 
 This folder is a self-contained web app. To use it on your phone as an
-installed, app-icon experience, it needs to be served over **https** (Chrome
-won't offer the "Install app" / add-to-home-screen prompt with full offline
-support for a `file://` page). The fastest free ways to do that:
+installed, app-icon experience, it needs to be served over **https**. The
+fastest free way: GitHub Pages, or drag-and-drop onto
+https://app.netlify.com/drop.
 
-## Option A — Netlify Drop (no account needed)
-1. Go to https://app.netlify.com/drop on your computer.
-2. Drag this whole folder onto the page.
-3. You'll get a URL like `https://random-name-123.netlify.app`.
-4. Open that URL on your Android phone in Chrome.
-5. Tap the Chrome menu (⋮) → **Install app** (or you'll see an automatic
-   install banner). It installs to your home screen with its own icon and
-   opens full-screen, no browser address bar.
+## Setting up your free AI key (no credit card)
 
-## Option B — GitHub Pages
-1. Create a new GitHub repo and upload these files (`index.html`,
-   `manifest.json`, `sw.js`, `icon-192.png`, `icon-512.png`).
-2. In the repo Settings → Pages, set the source to the main branch.
-3. Visit the published `https://<you>.github.io/<repo>/` URL on your phone
-   and install it the same way as above.
+This app uses **Google Gemini's free API tier** for the calorie estimator,
+exercise calorie-burn estimates, and workout plan generator — no billing,
+no credit card required.
 
-## Setting up your API key
-1. Open the installed app.
-2. Go to the **Settings** tab (05).
-3. Paste an API key from https://console.anthropic.com (API Keys section).
-4. Tap **Save key**.
+1. Go to **aistudio.google.com** and sign in with any Google account.
+2. Click **Get API key** (top left or in the menu) -> **Create API key**.
+3. Copy the key -- it starts with `AIza...`.
+4. Open the installed app -> Settings tab (05) -> paste the key -> Save key.
 
-The key is stored only in this browser's local storage on your phone — it's
-never sent anywhere except directly to `api.anthropic.com` when you use the
+The key is stored only in this browser's local storage on your phone -- it's
+never sent anywhere except directly to Google's Gemini API when you use the
 calorie estimator or workout plan generator. Because it lives in this page's
 storage, don't share your hosted link with anyone else while your key is
 saved, and don't commit a key into a public GitHub repo.
+
+Google's free tier has daily/per-minute request limits (generous for
+personal use -- roughly a few hundred requests a day). If you ever hit a
+limit, the app will show an error and you can just try again shortly after.
 
 ## What works offline
 Your logged weights, exercises, meals, and any saved plan are stored on your
 device and open instantly, even offline. The AI features (calorie
 estimation, calorie-burn estimates, workout plan generation) need an internet
-connection, since they call Anthropic's API directly from your phone.
+connection, since they call Google's API directly from your phone.
 
 ## Notes
-- All data lives in this browser only. Use the **Export all data** button in
+- All data lives in this browser only. Use the Export all data button in
   Settings to back it up, since clearing Chrome's site data (or uninstalling)
   will erase it.
-- Pricing for API usage is billed to your own Anthropic account under your
-  own key — check https://console.anthropic.com for current rates and usage.
+- If Google changes free-tier terms or limits in the future, check
+  ai.google.dev/pricing for the current policy.
