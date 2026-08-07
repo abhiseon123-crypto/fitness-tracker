@@ -832,7 +832,7 @@ class MissingApiKeyError extends Error{}
 
 function apiErrorMessage(e){
   if(e instanceof MissingApiKeyError){ return 'Add your Gemini API key in Settings first.'; }
-  return 'Could not reach the AI right now. Try again.';
+  return 'Could not reach the AI right now. Try again.<br><span style="color:var(--muted);">Details: ' + escapeHtml((e && e.message) || String(e)) + '</span>';
 }
 
 const GEMINI_MODEL = 'gemini-3.6-flash';
@@ -1029,7 +1029,7 @@ document.getElementById('p-generate').addEventListener('click', async ()=>{
     renderPlan();
   }catch(e){
     loadBox.innerHTML = '';
-    const msg = (e instanceof MissingApiKeyError) ? apiErrorMessage(e) : 'Could not generate a plan right now. Try again — if it keeps failing, try fewer training days.';
+    const msg = (e instanceof MissingApiKeyError) ? apiErrorMessage(e) : 'Could not generate a plan right now. Try again — if it keeps failing, try fewer training days.<br><span style="color:var(--muted);">Details: ' + escapeHtml((e && e.message) || String(e)) + '</span>';
     document.getElementById('p-result').innerHTML = '<div class="error-note">' + msg + '</div>';
   }finally{
     btn.disabled = false;
@@ -1096,7 +1096,7 @@ document.getElementById('ts-generate').addEventListener('click', async ()=>{
     renderTodaySession();
   }catch(e){
     loadBox.innerHTML = '';
-    const msg = (e instanceof MissingApiKeyError) ? apiErrorMessage(e) : 'Could not build today\'s session right now. Try again.';
+    const msg = (e instanceof MissingApiKeyError) ? apiErrorMessage(e) : 'Could not build today\'s session right now. Try again.<br><span style="color:var(--muted);">Details: ' + escapeHtml((e && e.message) || String(e)) + '</span>';
     document.getElementById('ts-result').innerHTML = '<div class="error-note">' + msg + '</div>';
   }finally{
     btn.disabled = false;
