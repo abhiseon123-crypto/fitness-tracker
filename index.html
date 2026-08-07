@@ -838,15 +838,19 @@ function apiErrorMessage(e){
 const GEMINI_MODEL = 'gemini-3.6-flash';
 
 function geminiUrl(){
+  return 'https://generativelanguage.googleapis.com/v1beta/models/' + GEMINI_MODEL + ':generateContent';
+}
+
+function geminiHeaders(){
   const key = getApiKey();
   if(!key){ throw new MissingApiKeyError('No API key set'); }
-  return 'https://generativelanguage.googleapis.com/v1beta/models/' + GEMINI_MODEL + ':generateContent?key=' + encodeURIComponent(key);
+  return { 'Content-Type':'application/json', 'x-goog-api-key': key };
 }
 
 async function callClaude(systemPrompt, userPrompt, maxTokens){
   const response = await fetch(geminiUrl(), {
     method:'POST',
-    headers:{ 'Content-Type':'application/json' },
+    headers: geminiHeaders(),
     body: JSON.stringify({
       system_instruction: { parts:[{ text: systemPrompt }] },
       contents:[{ role:'user', parts:[{ text: userPrompt }] }],
@@ -868,7 +872,7 @@ async function callClaude(systemPrompt, userPrompt, maxTokens){
 async function callClaudeVision(systemPrompt, userText, base64Data, mediaType, maxTokens){
   const response = await fetch(geminiUrl(), {
     method:'POST',
-    headers:{ 'Content-Type':'application/json' },
+    headers: geminiHeaders(),
     body: JSON.stringify({
       system_instruction: { parts:[{ text: systemPrompt }] },
       contents:[{
