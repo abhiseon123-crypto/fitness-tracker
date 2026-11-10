@@ -23,12 +23,13 @@ support for a `file://` page). The fastest free ways to do that:
 
 ## Setting up your API key
 1. Open the installed app.
-2. Go to the **Settings** tab (05).
-3. Paste an API key from https://console.anthropic.com (API Keys section).
+2. Go to the **Profile** tab.
+3. Paste a free Google Gemini API key from https://aistudio.google.com
+   (Get API key → Create API key).
 4. Tap **Save key**.
 
 The key is stored only in this browser's local storage on your phone — it's
-never sent anywhere except directly to `api.anthropic.com` when you use the
+never sent anywhere except directly to Google's Gemini API when you use the
 calorie estimator or workout plan generator. Because it lives in this page's
 storage, don't share your hosted link with anyone else while your key is
 saved, and don't commit a key into a public GitHub repo.
@@ -37,11 +38,13 @@ saved, and don't commit a key into a public GitHub repo.
 Your logged weights, exercises, meals, and any saved plan are stored on your
 device and open instantly, even offline. The AI features (calorie
 estimation, calorie-burn estimates, workout plan generation) need an internet
-connection, since they call Anthropic's API directly from your phone.
+connection, since they call Google's Gemini API directly from your phone.
 
 ## Notes
 - All data lives in this browser only. Use the **Export all data** button in
-  Settings to back it up, since clearing Chrome's site data (or uninstalling)
+  Profile to back it up, since clearing Chrome's site data (or uninstalling)
   will erase it.
-- Pricing for API usage is billed to your own Anthropic account under your
-  own key — check https://console.anthropic.com for current rates and usage.
+- API usage runs under your own Gemini key — check https://aistudio.google.com
+  for current limits and usage.
+- The app follows your phone's light/dark setting; you can override it under
+  **Profile → Appearance**.
