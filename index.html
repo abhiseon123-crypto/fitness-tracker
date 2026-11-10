@@ -327,6 +327,9 @@ input[type=file]::file-selector-button{font:600 14px var(--font-body);background
 .macro{background:var(--surface);border:1px solid var(--line);border-radius:var(--r-sm);padding:10px 8px;text-align:center;}
 .macro .n{font-family:var(--font-display);font-size:26px;font-weight:700;line-height:1;display:block;font-variant-numeric:tabular-nums;}
 .macro .l{font-size:12px;color:var(--muted);}
+.edit-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:var(--s3);margin-top:var(--s3);}
+@media (min-width:480px){.edit-grid{grid-template-columns:repeat(4,minmax(0,1fr));}}
+.ai-card input{background:var(--surface);}
 .ai-note{color:var(--muted);font-size:14px;line-height:1.55;margin-top:var(--s3);}
 .ai-note a{color:var(--accent-text);}
 .divider-or{display:flex;align-items:center;gap:var(--s3);color:var(--faint);font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:1px;margin:var(--s5) 0;}
@@ -1394,7 +1397,7 @@ function renderMeals(){
     const rows = g.items.map(m=>{
       const realIdx = state.meals.indexOf(m);
       return `<div class="entry-row">
-        <div class="desc">${escapeHtml(m.description)}<span class="sub">Protein ${m.protein_g||0} g · Carbs ${m.carbs_g||0} g · Fat ${m.fat_g||0} g</span></div>
+        <div class="desc">${escapeHtml(m.description)}<span class="sub">Protein ${m.protein_g||0} g · Carbs ${m.carbs_g||0} g · Fat ${m.fat_g||0} g${m.edited?' · edited':''}</span></div>
         <div class="num">${nf.format(m.calories)}<small>kcal</small></div>
         <button type="button" class="icon-btn del" data-idx="${realIdx}" data-kind="meal" aria-label="Delete ${escapeHtml(m.description)}">${icon('trash')}</button>
       </div>`;
@@ -1529,29 +1532,61 @@ let lastEstimate = null;
 function showMealResult(estimate){
   lastEstimate = estimate;
   const resultBox = $('m-result');
+  const numField = (id, label, value, unit) => `
+        <div class="field">
+          <label for="${id}">${label} <span class="opt">${unit}</span></label>
+          <input type="number" id="${id}" min="0" step="1" inputmode="numeric" value="${Number(value)||0}">
+        </div>`;
   resultBox.innerHTML = `
     <div class="ai-card">
       <div class="stamp">${icon('spark')}AI estimate</div>
-      <div class="ai-title">${escapeHtml(estimate.description||'')}</div>
-      <div class="macro-row">
-        <div class="macro"><span class="n">${nf.format(estimate.calories)}</span><span class="l">kcal</span></div>
-        <div class="macro"><span class="n">${estimate.protein_g}g</span><span class="l">protein</span></div>
-        <div class="macro"><span class="n">${estimate.carbs_g}g</span><span class="l">carbs</span></div>
-        <div class="macro"><span class="n">${estimate.fat_g}g</span><span class="l">fat</span></div>
+      <div class="field">
+        <label for="mr-desc">Meal name</label>
+        <input type="text" id="mr-desc" autocomplete="off" value="${escapeHtml(estimate.description||'')}">
       </div>
-      <div class="ai-note">${escapeHtml(estimate.note||'')}</div>
-      <div class="form-actions"><button type="button" class="btn block" id="m-log">${icon('plus')}Log this meal</button></div>
+      <div class="edit-grid">
+        ${numField('mr-cal','Calories',estimate.calories,'kcal')}
+        ${numField('mr-pro','Protein',estimate.protein_g,'g')}
+        ${numField('mr-carb','Carbs',estimate.carbs_g,'g')}
+        ${numField('mr-fat','Fat',estimate.fat_g,'g')}
+      </div>
+      <p class="err" id="mr-err" hidden></p>
+      <p class="helper" style="margin-top:8px;">These are estimates. Correct any value before logging, for example from a packet label.</p>
+      ${estimate.note ? '<div class="ai-note">' + escapeHtml(estimate.note) + '</div>' : ''}
+      <div class="form-actions">
+        <button type="button" class="btn" id="m-log" style="flex:1;">${icon('plus')}Log this meal</button>
+        <button type="button" class="btn ghost" id="m-discard">Discard</button>
+      </div>
     </div>
   `;
+  $('mr-cal').setAttribute('aria-describedby','mr-err');
+  $('m-discard').addEventListener('click', ()=>{ resultBox.innerHTML = ''; lastEstimate = null; });
   $('m-log').addEventListener('click', async ()=>{
-    state.meals.push({ date: todayStr(), ...lastEstimate });
+    const num = (id) => { const v = parseFloat($(id).value); return (isFinite(v) && v >= 0) ? Math.round(v) : null; };
+    const calories = num('mr-cal');
+    if(calories === null || $('mr-cal').value.trim() === ''){
+      setError('mr-cal','mr-err','Enter the calories as a number, 0 or more.');
+      $('mr-cal').focus();
+      return;
+    }
+    const entry = {
+      ...lastEstimate,
+      description: $('mr-desc').value.trim() || lastEstimate.description || 'Meal',
+      calories,
+      protein_g: num('mr-pro') || 0,
+      carbs_g: num('mr-carb') || 0,
+      fat_g: num('mr-fat') || 0
+    };
+    const edited = ['calories','protein_g','carbs_g','fat_g'].some(k => entry[k] !== lastEstimate[k]);
+    if(edited) entry.edited = true;
+    state.meals.push({ date: todayStr(), ...entry });
     await save('meal-log', state.meals);
     $('m-desc').value = '';
     resultBox.innerHTML = '';
     renderMeals();
     renderDashboard();
     renderTodaySessionStats();
-    toast('Meal logged.');
+    toast(edited ? 'Meal logged with your corrections.' : 'Meal logged.');
   });
 }
 
