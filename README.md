@@ -35,7 +35,7 @@ storage, don't share your hosted link with anyone else while your key is
 saved, and don't commit a key into a public GitHub repo.
 
 ## What works offline
-Your logged weights, exercises, meals, and any saved plan are stored on your
+Your logged weights, steps, exercises, meals, and any saved plan are stored on your
 device and open instantly, even offline. The AI features (calorie
 estimation, calorie-burn estimates, workout plan generation) need an internet
 connection, since they call Google's Gemini API directly from your phone.

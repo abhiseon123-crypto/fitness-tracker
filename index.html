@@ -330,6 +330,19 @@ input[type=file]::file-selector-button{font:600 14px var(--font-body);background
 .edit-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:var(--s3);margin-top:var(--s3);}
 @media (min-width:480px){.edit-grid{grid-template-columns:repeat(4,minmax(0,1fr));}}
 .ai-card input{background:var(--surface);}
+.steps-top{display:flex;align-items:flex-end;justify-content:space-between;gap:var(--s4);flex-wrap:wrap;}
+.steps-num{font-family:var(--font-display);font-weight:700;font-size:48px;line-height:1;font-variant-numeric:tabular-nums;}
+.steps-num small{font-family:var(--font-body);font-size:15px;font-weight:500;color:var(--muted);margin-left:8px;}
+.steps-meta{display:flex;gap:var(--s5);font-size:14px;color:var(--muted);font-variant-numeric:tabular-nums;}
+.steps-meta strong{color:var(--text);font-weight:600;}
+.progress{height:12px;border-radius:var(--r-full);background:var(--surface-3);overflow:hidden;margin-top:var(--s3);}
+.progress span{display:block;height:100%;width:100%;background:var(--accent);border-radius:var(--r-full);transform-origin:left center;transition:transform 500ms var(--ease-out);}
+.progress-note{font-size:13px;color:var(--muted);margin-top:6px;display:flex;align-items:center;gap:6px;}
+.progress-note svg{width:16px;height:16px;color:var(--accent-text);}
+.live{border:1px solid var(--accent-line);background:var(--accent-soft);border-radius:var(--r-md);padding:var(--s5);margin-top:var(--s4);text-align:center;}
+.live-count{font-family:var(--font-display);font-weight:700;font-size:72px;line-height:1;font-variant-numeric:tabular-nums;margin:var(--s2) 0;}
+.live .form-actions{justify-content:center;}
+.live .helper{max-width:44ch;margin:0 auto;color:var(--muted);}
 .ai-note{color:var(--muted);font-size:14px;line-height:1.55;margin-top:var(--s3);}
 .ai-note a{color:var(--accent-text);}
 .divider-or{display:flex;align-items:center;gap:var(--s3);color:var(--faint);font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:1px;margin:var(--s5) 0;}
@@ -409,6 +422,7 @@ dialog p{color:var(--muted);font-size:15px;}
     <symbol id="i-target" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5"/><circle cx="12" cy="12" r="1"/></symbol>
     <symbol id="i-chart" viewBox="0 0 24 24"><path d="M3 3v18h18"/><path d="m7 15 4-5 3 3 5-7"/></symbol>
     <symbol id="i-alert" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 8v5M12 16.5v.01"/></symbol>
+    <symbol id="i-steps" viewBox="0 0 24 24"><ellipse cx="8" cy="7.5" rx="3" ry="4.5"/><path d="M5.5 15.5h5V17a2.5 2.5 0 0 1-5 0z"/><ellipse cx="16.5" cy="10.5" rx="3" ry="4.5"/><path d="M14 18.5h5v.5a2.5 2.5 0 0 1-5 0z"/></symbol>
     <symbol id="i-clock" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></symbol>
   </defs>
 </svg>
@@ -452,6 +466,50 @@ dialog p{color:var(--muted);font-size:15px;}
         <div class="grid-2">
           <div class="card" id="today-card"></div>
           <div class="card" id="streak-card"></div>
+        </div>
+
+        <div class="card" id="steps-card">
+          <div class="card-head">
+            <div>
+              <h2 class="card-title">Steps</h2>
+              <p class="card-sub">Enter your daily total, or count a walk with this phone</p>
+            </div>
+          </div>
+          <div id="steps-summary"></div>
+          <div class="chart-box" id="steps-chart-box" style="height:180px;"><canvas id="stepsChart" role="img" aria-label="Bar chart of steps for the last 7 days"></canvas></div>
+
+          <form id="st-form" novalidate style="margin-top:20px;">
+            <div class="form-grid">
+              <div class="field">
+                <label for="st-date">Date</label>
+                <input type="date" id="st-date">
+              </div>
+              <div class="field">
+                <label for="st-value">Total steps</label>
+                <input type="number" id="st-value" min="0" step="1" inputmode="numeric" placeholder="6500" aria-describedby="st-err st-help">
+                <p class="err" id="st-err" hidden></p>
+              </div>
+              <div class="field span-2">
+                <span class="label spacer" aria-hidden="true">&nbsp;</span>
+                <button type="submit" class="btn secondary" id="st-save"><svg class="i" aria-hidden="true"><use href="#i-plus"/></svg>Save steps</button>
+              </div>
+            </div>
+            <p class="helper" id="st-help" style="margin-top:8px;">Copy the day's total from your phone or watch. Saving replaces that day's number.</p>
+          </form>
+
+          <div style="border-top:1px solid var(--line);margin-top:20px;padding-top:16px;">
+            <button type="button" class="btn ghost" id="live-start"><svg class="i" aria-hidden="true"><use href="#i-steps"/></svg>Count a walk now</button>
+            <p class="err" id="live-err" role="alert" hidden style="margin-top:10px;"></p>
+            <div class="live" id="live-panel" hidden>
+              <p class="eyebrow">Counting this walk</p>
+              <div class="live-count" id="live-count" aria-live="off">0</div>
+              <p class="helper">Keep this screen open with the phone in your hand or pocket. Counting pauses if the screen locks or you switch apps.</p>
+              <div class="form-actions">
+                <button type="button" class="btn" id="live-stop">Stop and add to today</button>
+                <button type="button" class="btn ghost" id="live-cancel">Cancel</button>
+              </div>
+            </div>
+          </div>
         </div>
 
         <div class="card">
@@ -729,6 +787,10 @@ dialog p{color:var(--muted);font-size:15px;}
                 <input type="number" id="pf-calorie-goal" min="0" inputmode="numeric" placeholder="2000">
               </div>
               <div class="field">
+                <label for="pf-step-goal">Daily step goal</label>
+                <input type="number" id="pf-step-goal" min="0" step="500" inputmode="numeric" placeholder="8000">
+              </div>
+              <div class="field">
                 <label for="pf-gym-start">Gym start</label>
                 <input type="time" id="pf-gym-start">
               </div>
@@ -795,7 +857,7 @@ dialog p{color:var(--muted);font-size:15px;}
 
 <dialog id="confirm-dialog" aria-labelledby="cd-title" aria-describedby="cd-body">
   <h2 id="cd-title">Clear all data?</h2>
-  <p id="cd-body">This removes all weights, exercises, meals, plans and your profile from this device. Your API key is kept. This can't be undone.</p>
+  <p id="cd-body">This removes all weights, steps, exercises, meals, plans and your profile from this device. Your API key is kept. This can't be undone.</p>
   <div class="dialog-actions">
     <button type="button" class="btn ghost" id="cd-cancel">Cancel</button>
     <button type="button" class="btn danger" id="cd-ok">Clear data</button>
@@ -830,8 +892,9 @@ const icon = (name) => '<svg class="i" aria-hidden="true"><use href="#i-' + name
 $('today-stamp').textContent = new Date().toLocaleDateString(undefined, { weekday:'long', day:'numeric', month:'long' });
 $('w-date').value = todayStr();
 $('e-date').value = todayStr();
+$('st-date').value = todayStr();
 
-let state = { weights: [], exercises: [], meals: [], plan: null, profile: {} };
+let state = { weights: [], exercises: [], meals: [], steps: [], plan: null, profile: {} };
 let charts = {};
 
 const STORAGE_PREFIX = 'logbook:';
@@ -839,6 +902,8 @@ const STORAGE_PREFIX = 'logbook:';
 async function loadAll(){
   try{ const w = localStorage.getItem(STORAGE_PREFIX+'weight-log'); state.weights = w ? JSON.parse(w) : []; }catch(e){ state.weights = []; }
   try{ const ex = localStorage.getItem(STORAGE_PREFIX+'exercise-log'); state.exercises = ex ? JSON.parse(ex) : []; }catch(e){ state.exercises = []; }
+  try{ const st = localStorage.getItem(STORAGE_PREFIX+'steps-log'); state.steps = st ? JSON.parse(st) : []; }catch(e){ state.steps = []; }
+  if(!Array.isArray(state.steps)) state.steps = [];
   try{ const m = localStorage.getItem(STORAGE_PREFIX+'meal-log'); state.meals = m ? JSON.parse(m) : []; }catch(e){ state.meals = []; }
   try{ const p = localStorage.getItem(STORAGE_PREFIX+'workout-plan'); state.plan = p ? JSON.parse(p) : null; }catch(e){ state.plan = null; }
   try{ const pf = localStorage.getItem(STORAGE_PREFIX+'profile'); state.profile = pf ? JSON.parse(pf) : {}; }catch(e){ state.profile = {}; }
@@ -865,6 +930,7 @@ function fillProfileForm(){
   $('pf-gym-start').value = state.profile.gymStart || '';
   $('pf-gym-end').value = state.profile.gymEnd || '';
   $('pf-calorie-goal').value = state.profile.calorieGoal || '';
+  $('pf-step-goal').value = state.profile.stepGoal || '';
 }
 
 async function save(key, value){
@@ -977,7 +1043,7 @@ $('s-clear-key').addEventListener('click', ()=>{
 });
 
 $('s-export').addEventListener('click', ()=>{
-  const dump = { weights: state.weights, exercises: state.exercises, meals: state.meals, plan: state.plan, profile: state.profile };
+  const dump = { weights: state.weights, exercises: state.exercises, meals: state.meals, steps: state.steps, plan: state.plan, profile: state.profile };
   const blob = new Blob([JSON.stringify(dump, null, 2)], { type:'application/json' });
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
@@ -993,8 +1059,8 @@ $('cd-cancel').addEventListener('click', ()=>confirmDialog.close());
 confirmDialog.addEventListener('click', (ev)=>{ if(ev.target === confirmDialog) confirmDialog.close(); });
 confirmDialog.addEventListener('close', ()=>$('s-clear-data').focus());
 $('cd-ok').addEventListener('click', ()=>{
-  ['weight-log','exercise-log','meal-log','workout-plan','today-session','profile'].forEach(k=>localStorage.removeItem(STORAGE_PREFIX+k));
-  state = { weights: [], exercises: [], meals: [], plan: null, profile: {}, todaySession: null };
+  ['weight-log','exercise-log','meal-log','steps-log','workout-plan','today-session','profile'].forEach(k=>localStorage.removeItem(STORAGE_PREFIX+k));
+  state = { weights: [], exercises: [], meals: [], steps: [], plan: null, profile: {}, todaySession: null };
   fillProfileForm();
   renderDashboard(); renderExercises(); renderMeals(); renderPlan(); renderTodaySession();
   confirmDialog.close();
@@ -1012,7 +1078,8 @@ $('pf-form').addEventListener('submit', async (ev)=>{
     goalWeight: parseFloat($('pf-goal-weight').value) || null,
     gymStart: $('pf-gym-start').value || null,
     gymEnd: $('pf-gym-end').value || null,
-    calorieGoal: parseInt($('pf-calorie-goal').value) || null
+    calorieGoal: parseInt($('pf-calorie-goal').value) || null,
+    stepGoal: parseInt($('pf-step-goal').value) || null
   };
   await save('profile', state.profile);
   renderDashboard();
@@ -1088,6 +1155,7 @@ function getActiveDatesSet(){
   state.weights.forEach(w=>set.add(w.date));
   state.exercises.forEach(e=>set.add(e.date));
   state.meals.forEach(m=>set.add(m.date));
+  state.steps.forEach(x=>{ if(x.steps > 0) set.add(x.date); });
   return set;
 }
 
@@ -1177,6 +1245,7 @@ function renderToday(){
 
 function renderDashboard(){
   renderToday();
+  renderSteps();
   renderStreak();
   const sorted = [...state.weights].sort((a,b)=>a.date.localeCompare(b.date));
   const statsRow = $('dash-stats');
@@ -1223,6 +1292,8 @@ function renderDashboard(){
 
   if(charts.weight){ charts.weight.destroy(); }
   if(charts.cal){ charts.cal.destroy(); }
+  if(charts.steps){ charts.steps.destroy(); }
+  charts.steps = null;
   charts.weight = null; charts.cal = null;
   if(!window.Chart) return;
 
@@ -1282,6 +1353,21 @@ function renderDashboard(){
     charts.cal = new Chart($('calChart'), { data:{ labels: calDates.map(shortDate), datasets: ds }, options:o });
     $('cal-chart-note').textContent = 'Dashed line is your daily calorie goal. Days over goal are highlighted.';
   }
+
+  {
+    const t = todayStr();
+    const days = [];
+    for(let i=6;i>=0;i--) days.push(dateAddDays(t,-i));
+    const goal = stepGoal();
+    const ds = [{ type:'bar', label:'Steps', data: days.map(stepsOn), backgroundColor:cAccent, borderRadius:6, maxBarThickness:28, order:2 },
+                { type:'line', label:'Goal', data: days.map(()=>goal), borderColor:cFaint, borderWidth:1.5, borderDash:[6,6], pointRadius:0, pointHoverRadius:0, fill:false, order:1 }];
+    const o = baseOpts('steps');
+    o.scales = {
+      x:{ ticks:{ color:cMuted, font:tickFont, maxRotation:0 }, grid:{ display:false }, border:{ color:cGrid } },
+      y:{ beginAtZero:true, ticks:{ color:cMuted, font:tickFont, maxTicksLimit:5, callback:(v)=> v>=1000 ? (v/1000)+'k' : v }, grid:{ color:cGrid }, border:{ display:false } }
+    };
+    charts.steps = new Chart($('stepsChart'), { data:{ labels: days.map(d=> d===t ? 'Today' : new Date(d+'T00:00:00').toLocaleDateString(undefined,{weekday:'short'})), datasets: ds }, options:o });
+  }
 }
 
 $('w-form').addEventListener('submit', async (ev)=>{
@@ -1302,6 +1388,135 @@ $('w-form').addEventListener('submit', async (ev)=>{
   renderDashboard();
   toast((replaced ? 'Weight updated for ' : 'Weight logged for ') + niceDate(date).toLowerCase() + '.');
 });
+
+/* ---------------- steps ---------------- */
+const DEFAULT_STEP_GOAL = 8000;
+const stepGoal = () => state.profile.stepGoal || DEFAULT_STEP_GOAL;
+function stepsOn(date){
+  const row = state.steps.find(x=>x.date===date);
+  return row ? (row.steps||0) : 0;
+}
+async function setSteps(date, steps){
+  state.steps = state.steps.filter(x=>x.date!==date);
+  if(steps > 0) state.steps.push({ date, steps });
+  await save('steps-log', state.steps);
+}
+function renderSteps(){
+  const steps = stepsOn(todayStr());
+  const goal = stepGoal();
+  const frac = Math.min(1, steps/goal);
+  /* rough conversions: stride from height, about 0.0005 kcal per step per kg */
+  const stride = state.profile.height ? state.profile.height*0.415/100 : 0.75;
+  const km = steps*stride/1000;
+  const kcal = Math.round(steps * (currentBodyweight() || 70) * 0.0005);
+  const left = goal - steps;
+  const note = left <= 0
+    ? icon('check') + '<span>Goal reached. ' + nf.format(goal) + ' steps done.</span>'
+    : '<span>' + nf.format(left) + ' to go of ' + nf.format(goal) + (state.profile.stepGoal ? '' : ' (default goal, change it in Profile)') + '</span>';
+  $('steps-summary').innerHTML =
+    '<div class="steps-top">' +
+      '<div class="steps-num">' + nf.format(steps) + '<small>steps today</small></div>' +
+      '<div class="steps-meta"><span><strong>' + km.toFixed(1) + '</strong> km approx</span><span><strong>~' + nf.format(kcal) + '</strong> kcal approx</span></div>' +
+    '</div>' +
+    '<div class="progress" role="progressbar" aria-label="Steps toward daily goal" aria-valuemin="0" aria-valuemax="' + goal + '" aria-valuenow="' + Math.min(steps,goal) + '"><span style="transform:scaleX(' + frac.toFixed(3) + ')"></span></div>' +
+    '<div class="progress-note">' + note + '</div>';
+}
+
+$('st-form').addEventListener('submit', async (ev)=>{
+  ev.preventDefault();
+  const date = $('st-date').value || todayStr();
+  const raw = $('st-value').value.trim();
+  const value = Math.round(parseFloat(raw));
+  if(raw === '' || !isFinite(value) || value < 0 || value > 200000){
+    setError('st-value','st-err','Enter the total steps for the day as a number, for example 6500.');
+    $('st-value').focus();
+    return;
+  }
+  setError('st-value','st-err','');
+  await setSteps(date, value);
+  $('st-value').value = '';
+  renderDashboard();
+  toast('Steps saved for ' + niceDate(date).toLowerCase() + '.');
+});
+
+/* Live counting with the phone's motion sensor. Works only while this page is open and the screen is on. */
+const live = { on:false, count:0, base:9.81, smooth:9.81, above:false, last:0, gotEvent:false, wake:null, timer:null };
+function onMotion(ev){
+  const a = ev.accelerationIncludingGravity;
+  if(!a || a.x === null) return;
+  live.gotEvent = true;
+  const m = Math.sqrt(a.x*a.x + a.y*a.y + a.z*a.z);
+  live.base += (m - live.base) * 0.02;      /* slow baseline (gravity) */
+  live.smooth += (m - live.smooth) * 0.3;   /* light smoothing */
+  const d = live.smooth - live.base;
+  const now = Date.now();
+  if(!live.above && d > 1.1 && now - live.last > 280){
+    live.above = true; live.last = now; live.count++;
+    $('live-count').textContent = nf.format(live.count);
+  } else if(live.above && d < 0.3){
+    live.above = false;
+  }
+}
+function liveError(msg){
+  const err = $('live-err');
+  if(msg){ err.innerHTML = icon('alert') + '<span></span>'; err.lastChild.textContent = msg; err.hidden = false; }
+  else { err.hidden = true; err.textContent = ''; }
+}
+async function requestWake(){
+  try{ if('wakeLock' in navigator){ live.wake = await navigator.wakeLock.request('screen'); } }catch(e){ live.wake = null; }
+}
+function liveEnd(){
+  window.removeEventListener('devicemotion', onMotion);
+  clearTimeout(live.timer);
+  if(live.wake){ live.wake.release().catch(()=>{}); live.wake = null; }
+  live.on = false;
+  $('live-panel').hidden = true;
+  $('live-start').hidden = false;
+}
+$('live-start').addEventListener('click', async ()=>{
+  liveError('');
+  if(typeof DeviceMotionEvent === 'undefined'){
+    liveError('This browser does not give access to the motion sensor. Enter your steps manually instead.');
+    return;
+  }
+  try{
+    if(typeof DeviceMotionEvent.requestPermission === 'function'){
+      const res = await DeviceMotionEvent.requestPermission();
+      if(res !== 'granted'){ liveError('Motion access was not allowed. Allow it in your browser settings, or enter your steps manually.'); return; }
+    }
+  }catch(e){
+    liveError('Could not get motion access. Enter your steps manually instead.');
+    return;
+  }
+  Object.assign(live, { on:true, count:0, base:9.81, smooth:9.81, above:false, last:0, gotEvent:false });
+  $('live-count').textContent = '0';
+  $('live-panel').hidden = false;
+  $('live-start').hidden = true;
+  window.addEventListener('devicemotion', onMotion);
+  requestWake();
+  live.timer = setTimeout(()=>{
+    if(live.on && !live.gotEvent){
+      liveEnd();
+      liveError('No motion data received. This device or browser may not have a motion sensor available. Enter your steps manually instead.');
+    }
+  }, 3000);
+  $('live-stop').focus();
+});
+$('live-stop').addEventListener('click', async ()=>{
+  const counted = live.count;
+  liveEnd();
+  if(counted > 0){
+    const t = todayStr();
+    await setSteps(t, stepsOn(t) + counted);
+    renderDashboard();
+    toast(nf.format(counted) + ' steps added to today.');
+  } else {
+    toast('No steps were counted.');
+  }
+  $('live-start').focus();
+});
+$('live-cancel').addEventListener('click', ()=>{ liveEnd(); $('live-start').focus(); });
+document.addEventListener('visibilitychange', ()=>{ if(live.on && document.visibilityState === 'visible') requestWake(); });
 
 /* ---------------- shared list helpers ---------------- */
 function groupByDate(items){
